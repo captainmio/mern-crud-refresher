@@ -1,33 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { use, Suspense } from 'react';
 import Loading from "../components/loading";
 import WorkoutDetail from "../components/WorkoutDetail";
-
-const getAllWorkouts = async () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-
-  const res = await fetch(`${apiUrl}/workouts`);
-  const response = res.json();
-
-  return response;
-}
+import WorkoutForm from "../components/WorkoutForm";
+import { getAllWorkouts } from "../services/workoutApi";
 
 const dataPromise = getAllWorkouts();
 
 const Home = () => {
-  const data = use(dataPromise)
-  const workouts = data;
+  const [workouts, setWorkouts] = useState(dataPromise);
+  const data = use(workouts)
+
+  const refetch = async () => {
+    setWorkouts(getAllWorkouts());
+  }
 
   return (
     <Suspense fallback={<Loading />}>
       <div className="home">
         <div className="workouts" >
-          { workouts && workouts.map((workout) => {
+          { data && data.map((workout) => {
             return(
-              <WorkoutDetail workout={workout} />
+              <WorkoutDetail workout={workout} key={workout._id} />
             )
           })}
         </div>
+        <WorkoutForm handleRefresh={refetch}/>
       </div>
     </Suspense>
   );
